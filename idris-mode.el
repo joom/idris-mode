@@ -79,6 +79,7 @@
     "-----------------"
     ["Add initial match clause to type declaration" idris-add-clause t]
     ["Add missing cases" idris-add-missing t]
+    ["Fill hole with Elab tactic" idris-elab-hole t]
     ["Case split pattern variable" idris-case-split t]
     ["Add with block" idris-make-with-block t]
     ["Extract lemma from hole" idris-make-lemma t]

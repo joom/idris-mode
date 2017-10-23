@@ -566,6 +566,23 @@ KILLFLAG is set if N was explicitly specified."
             (copy-region-as-kill (mark) (point))
             (message "Code copied to kill ring")))))))
 
+(defun idris-hole-start-end ()
+  "Return the initial end final cursor positions of the hole name the cursor is on"
+  `(,(progn (search-backward "?") (point))
+    ,(progn (forward-char) (search-forward-regexp "[^a-zA-Z0-9_']") (backward-char) (point))))
+
+(defun idris-elab-hole-arg (action)
+  "Run Elab action in argument in editor"
+  (interactive)
+  (let ((result (car (idris-eval `(:elab-action ,(idris-get-line-num) ,(idris-name-at-point) ,action)))))
+    (save-excursion
+      (apply 'delete-region (idris-hole-start-end))
+      (insert result))))
+
+(defun idris-elab-hole ()
+  "Run Elab action in editor"
+  (interactive)
+  (idris-elab-hole-arg (read-string "Enter Elab action:")))
 
 (defun idris-case-split ()
   "Case split the pattern variable at point"
