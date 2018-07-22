@@ -571,18 +571,48 @@ KILLFLAG is set if N was explicitly specified."
   `(,(progn (search-backward "?") (point))
     ,(progn (forward-char) (search-forward-regexp "[^a-zA-Z0-9_']") (backward-char) (point))))
 
-(defun idris-elab-hole-arg (action)
-  "Run Elab action in argument in editor"
+(defun idris-elab-hole-arg (action l)
+  "Run Elab action in argument in editor, replace the hole with the result"
   (interactive)
-  (let ((result (car (idris-eval `(:elab-action ,(idris-get-line-num) ,(idris-name-at-point) ,action)))))
+  (let ((result (car (idris-eval `(:elab-edit ,action ,l ,(idris-get-line-num) ,(current-column))))))
     (save-excursion
       (apply 'delete-region (idris-hole-start-end))
+      (insert result))))
+
+(defun idris-simplify-regex ()
+  "Replace selection with simplified regex"
+  (interactive)
+  (let* ((arg `(,(buffer-substring-no-properties
+                  (region-beginning) (region-end))))
+         (result (car (idris-eval `(:elab-edit "simplifyInEditor" ,arg
+                                    ,(idris-get-line-num)
+                                    ,(current-column))))))
+    (save-excursion
+      (delete-region (region-beginning) (region-end))
       (insert result))))
 
 (defun idris-elab-hole ()
   "Run Elab action in editor"
   (interactive)
-  (idris-elab-hole-arg (read-string "Enter Elab action:")))
+  (let ((action (read-string "Enter an Elab action:"))
+        (arg    (read-string "Enter a string-y argument:")))
+    (idris-elab-hole-arg action `(,arg))))
+
+(defun idris-toy ()
+  "Run the toy Elab action in editor"
+  (interactive)
+  (let ((term (read-string "Enter a term:")))
+    (idris-elab-hole-arg "toy" `(,(idris-name-at-point) ,term))))
+
+(defun idris-prover-on-hole ()
+  "Run prover Elab action in editor, replace the hole with the result"
+  (interactive)
+  (idris-elab-hole-arg "prover" `(,(idris-name-at-point))))
+
+(defun idris-hey-hole ()
+  "Run hey action in editor, replace the hole with the result"
+  (interactive)
+  (idris-elab-hole-arg "hey" `(,`(:MkHey ,(read-string "Your name:")))))
 
 (defun idris-case-split ()
   "Case split the pattern variable at point"
